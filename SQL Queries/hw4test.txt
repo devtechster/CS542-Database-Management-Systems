@@ -1,0 +1,27 @@
+CREATE TABLE Emp1 (
+    eid INTEGER,
+    ename CHAR(255),
+    age INTEGER,
+    salary FLOAT,
+    PRIMARY KEY (eid)
+);
+
+CREATE TABLE Works1 (
+    eid INTEGER,
+    did INTEGER,
+    pct_time INTEGER,
+    PRIMARY KEY (eid, did),
+    FOREIGN KEY (eid) REFERENCES Emp1 (eid),
+    FOREIGN KEY (did) REFERENCES Dept1 (did)
+);
+
+CREATE TABLE Dept1 (
+    did INTEGER,
+    dname CHAR(255),
+    budget FLOAT,
+    managerid INTEGER,
+    PRIMARY KEY (did),
+    FOREIGN KEY (managerid) REFERENCES Emp1 (eid)
+);
+
+INSERT INTO Works1 Values(1,1,100);

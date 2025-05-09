@@ -1,0 +1,120 @@
+CREATE TABLE Emp (
+    eid INTEGER,
+    ename CHAR(255),
+    age INTEGER,
+    salary FLOAT,
+    PRIMARY KEY (eid)
+);
+
+CREATE TABLE Works (
+    eid INTEGER,
+    did INTEGER,
+    pct_time INTEGER,
+    PRIMARY KEY (eid, did),
+    FOREIGN KEY (eid) REFERENCES Emp (eid),
+    FOREIGN KEY (did) REFERENCES Dept (did)
+);
+
+CREATE TABLE Dept (
+    did INTEGER,
+    dname CHAR(255),
+    budget FLOAT,
+    managerid INTEGER,
+    PRIMARY KEY (did),
+    FOREIGN KEY (managerid) REFERENCES Emp (eid)
+);
+
+select * from Dept;
+
+
+----------------------------------------------------------------------------------------Query 1
+
+SELECT ename, age FROM Emp
+NATURAL JOIN (SELECT * FROM Dept Natural JOIN Works)
+WHERE dname = "Software"
+INTERSECT
+SELECT ename, age FROM Emp
+NATURAL JOIN (SELECT * FROM Dept NATURAL JOIN Works)
+WHERE dname = "Hardware";
+
+------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------Query 2
+
+SELECT FT.did, COUNT(*) AS my_emp FROM Works FT
+WHERE FT.pct_time = 100 
+            OR (FT.pct_time < 100 AND (SELECT SUM(PT.pct_time)FROM Works PT WHERE PT.did = FT.did) >= 100)
+GROUP BY FT.did HAVING COUNT(*) >= 10;
+
+
+SELECT did, count(eid), sum(pct_time)
+FROM Works Natural Join Dept
+GROUP BY did
+HAVING sum(pct_time)>1000
+------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------Query 3 
+
+SELECT DISTINCT E.ename
+FROM Emp E
+WHERE NOT EXISTS (
+    SELECT *
+    FROM Works W
+    INNER JOIN Dept D ON W.did = D.did
+    WHERE E.eid = W.eid AND E.salary <= D.budget
+);
+------------------------------------------------------------------------------------------Query 3 
+--
+--select e.ename from emp e where e.eid in (
+--select w.eid,w.did,d.budget from work w join dept d on w.did=d.did
+--where e.eid=w.eid and e.salary>max(d.budget) 
+--group by w.eid,d.did,d.budget
+--)
+
+
+----------------------------------------------------------------------------------------Query 4
+
+SELECT DISTINCT D.managerid
+FROM Dept D
+INNER JOIN Emp M ON D.managerid = M.eid
+WHERE NOT EXISTS (
+SELECT * FROM Dept D2
+WHERE D2.managerid = M.eid AND D2.budget <= 1000000)
+AND D.budget > 1000000;
+---------------------
+
+SELECT D.managerid
+FROM Dept D
+INNER JOIN Emp M ON D.managerid = M.eid
+WHERE NOT EXISTS (
+  SELECT * FROM Dept D2
+  WHERE D2.managerid = M.eid AND D2.budget <= 1000000
+)
+AND D.budget > 1000000
+GROUP BY D.managerid
+HAVING COUNT(*) = 1;
+
+------------- 
+
+--SELECT DISTINCT E.ename
+--FROM Emp E
+--JOIN (
+--    SELECT D.managerid
+--    FROM Dept D
+--    WHERE D.budget = (
+--        SELECT MAX(budget)
+--        FROM Dept
+--    )
+--) AS MaxBudgetDepts ON E.eid = MaxBudgetDepts.managerid;
+
+
+-------------------------------------------------------------------------------Query5
+--select E.*, D.*
+--from Emp E
+--join Dept D on E.eid = D.managerid
+--where E.eid = 489456522;
+
+SELECT E.ename FROM Emp E JOIN Dept D ON E.eid = D.managerid
+WHERE D.budget = ( SELECT MAX(budget)
+    FROM Dept
+);
+

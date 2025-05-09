@@ -1,0 +1,310 @@
+CREATE TABLE Product
+(
+manufacturer CHAR(10),
+model CHAR(10) PRIMARY KEY,
+type CHAR(10) CHECK (TYPE = 'LAPTOP' OR TYPE ='PC'));
+
+---Inserted Data
+INSERT INTO Product VALUES ('ABC','1001','PC');
+INSERT INTO Product VALUES ('DEF','1002','LAPTOP');
+INSERT INTO Product VALUES ('DEF','1003','Chromebook');
+
+
+INSERT INTO Product VALUES ('1','2006','PC');
+INSERT INTO Product VALUES ('2','2007','PC');
+INSERT INTO Product VALUES ('3','2008','PC');
+INSERT INTO Product VALUES ('4','2009','PC');
+
+
+------------------1.4
+INSERT INTO Product VALUES('M1', 'Model1', 'PC');
+INSERT INTO Product VALUES('M2', 'Model2', 'LAPTOP');
+INSERT INTO Product VALUES('M3', 'Model3', 'PC');
+INSERT INTO Product VALUES('M4', 'Model4', 'LAPTOP');
+
+INSERT INTO PC VALUES ('Model1', 2.0, 8, 500, 15.6, 800);
+INSERT INTO PC VALUES ('Model3', 2.4, 16, 1000, 17.3, 1200);
+INSERT INTO PC VALUES ('2006', 2.6, 16, 500, 17.3, 1300);
+INSERT INTO PC VALUES ('2007', 2.7, 16, 1000, 17.3, 1400);
+INSERT INTO PC VALUES ('2008', 2.8, 8, 500, 17.3, 1500);
+INSERT INTO PC VALUES ('2009', 2.9, 8, 1000, 17.3, 1600);
+
+INSERT INTO Laptop VALUES ('Model2', 2.2, 16, 512, 13.3, 900);
+INSERT INTO Laptop VALUES ('Model4', 2.6, 32, 1000, 15.6, 1500);
+
+
+
+SELECT * FROM Product;
+SELECT * FROM PC;
+SELECT * FROM Laptop;
+
+DELETE FROM PC WHERE Model = '2005';
+
+
+CREATE TABLE Laptop (
+    model CHAR(10) PRIMARY KEY,
+    speed INT,
+    ram INT,
+    hd INT,
+    rd INT,
+    price INT,
+    FOREIGN KEY (model) REFERENCES Product(model),
+    CHECK (price >= 500) 
+);
+
+INSERT INTO Laptop VALUES('1001','500','8','256','100','500');
+INSERT INTO Laptop VALUES('1002','500','16','512','100','499');
+
+SELECT * FROM Laptop;
+
+CREATE TABLE PC(
+    model CHAR(10) PRIMARY KEY,
+    speed INT,
+    ram INT,
+    hd INT,
+    screen Number(4,2),
+    price INT,
+    CONSTRAINT model_no FOREIGN KEY (model) REFERENCES Product(model)
+);
+
+
+
+---------------------Part 3
+
+INSERT INTO PC VALUES ('Model1', 2.0, 8, 500, 15.6, 800);
+INSERT INTO PC VALUES ('Model3', 2.4, 16, 1000, 17.3, 1200);
+
+CREATE VIEW PCPriceList  AS SELECT model, price from PC;
+
+SELECT MIN(price) FROM PCPriceList;
+SELECT * FROM PCPriceList WHERE price = (SELECT MIN(price) FROM PCPriceList);
+
+DELETE FROM PCPriceList
+WHERE price = 800;
+
+select * from PCPriceList;
+
+
+INSERT INTO PCPriceList(model) VALUES(2005);
+
+ALTER TABLE PC
+DROP CONSTRAINT model_no;
+
+INSERT INTO PCPriceList(model) VALUES(2005);
+select * from PCPriceList;
+
+INSERT INTO PCPriceList (price) VALUES (1700);
+
+CREATE VIEW extendedPC AS Select manufacturer, Product.model, speed,
+ram, hd, price, type FROM Product, PC WHERE Product.model = PC.model;
+
+select * from extendedpc;
+
+DELETE FROM extendedPC WHERE MODEL ='2009';
+
+
+--------------------------------------------------Part 2
+CREATE TABLE Product
+(
+manufacturer CHAR(10),
+model CHAR(10) PRIMARY KEY,
+type CHAR(10)
+);
+
+INSERT INTO Product VALUES ('Model2','2024','PC');
+INSERT INTO Product VALUES ('Model3','2025','PC');
+
+CREATE TABLE PC(
+    model CHAR(10) PRIMARY KEY,
+    speed INT,
+    ram INT,
+    hd INT,
+    rd INT,
+    price INT );
+
+CREATE TABLE Laptop (
+    model CHAR(10) PRIMARY KEY,
+    speed INT,
+    ram INT,
+    hd INT,
+    screen number(4,2),
+    price INT
+);
+
+--------------------2.1
+
+CREATE Trigger model_pc
+Before Insert Or Update OF model On PC
+For EACH Row
+    Declare
+    model_no number;
+Begin 
+    Select Count(*)into model_no from Laptop where model = :new.model;
+    IF model_no>0 Then RAISE_APPLICATION_ERROR(-20004,'The value already exists in Laptop');
+End IF;
+End;
+/
+
+CREATE OR REPLACE TRIGGER model_laptop
+BEFORE INSERT OR UPDATE OF model ON Laptop
+FOR EACH ROW
+DECLARE
+    model_no NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO model_no FROM PC WHERE model = :new.model;    
+    IF model_no > 0 THEN
+        RAISE_APPLICATION_ERROR(-20004, 'The value already exists in PC');
+    END IF;
+END;
+/
+
+
+----------------2.2
+Create Trigger ram_hd
+Before Insert Or Update On PC
+For Each Row
+Begin
+IF((:new.hd*1000) < (:new.ram*100))
+THEN RAISE_APPLICATION_ERROR(-20004, 'Incorrect value');
+End IF;
+End;
+/
+
+INSERT INTO PC VALUES('2029','500','1000','10','41','499');
+
+
+select * from Product;
+select * from PC;
+select * from Laptop;
+
+------2.3
+
+CREATE TABLE Product_Monitoring(
+    model CHAR(10),
+    old_price INT,
+    new_price INT,
+    type CHAR(10),
+    time date
+);
+
+Drop trigger update_price_pc;
+Drop trigger update_price_laptop;
+
+---------------------------------2.3
+CREATE OR REPLACE TRIGGER update_price_pc
+AFTER UPDATE ON PC
+FOR EACH ROW
+DECLARE
+    temp VARCHAR2(20);
+BEGIN
+    SELECT TO_CHAR(SYSDATE, 'dd-mm-yyyy: hh24:mi') INTO temp FROM dual;
+    INSERT INTO Product_monitoring (model, old_price, new_price, type, time)
+    VALUES (:old.model, :old.price, :new.price, 'PC', temp);
+END;
+/
+
+--------------------------------------------
+
+CREATE OR REPLACE TRIGGER update_price_laptop
+AFTER UPDATE ON Laptop
+FOR EACH ROW
+DECLARE
+    temp VARCHAR2(20);
+BEGIN
+    SELECT TO_CHAR(SYSDATE, 'dd-mm-yyyy: hh24:mi') INTO temp FROM dual;
+    INSERT INTO Product_monitoring (model, old_price, new_price, type, time)
+    VALUES (:old.model, :old.price, :new.price, 'Laptop', temp);
+END;
+/
+
+
+-------------------------------------
+
+
+-------------------------------------------------------2.4
+
+-- Trigger to ensure PC model consistency with the Product table
+CREATE OR REPLACE TRIGGER pc_model_constraint
+BEFORE INSERT OR UPDATE ON PC
+FOR EACH ROW
+BEGIN
+    IF :NEW.model IS NOT NULL THEN
+        -- Check if the PC model exists in the Product table
+        IF NOT EXISTS (SELECT 1 FROM Product WHERE model = :NEW.model) THEN
+            -- If not, insert the missing PC model into the Product table
+            INSERT INTO Product (model) VALUES (:NEW.model);
+        END IF;
+    END IF;
+END;
+/
+
+-- Trigger to ensure Laptop model consistency with the Product table
+CREATE OR REPLACE TRIGGER laptop_model_constraint
+BEFORE INSERT OR UPDATE ON Laptop
+FOR EACH ROW
+BEGIN
+    IF :NEW.model IS NOT NULL THEN
+        -- Check if the Laptop model exists in the Product table
+        IF NOT EXISTS (SELECT 1 FROM Product WHERE model = :NEW.model) THEN
+            -- If not, insert the missing Laptop model into the Product table
+            INSERT INTO Product (model) VALUES (:NEW.model);
+        END IF;
+    END IF;
+END;
+/
+
+
+
+drop trigger pc_model_constraint;
+drop trigger laptop_model_constraint;
+
+--------------------improved 2.4
+-- Trigger to ensure PC model consistency with the Product table
+
+-- Trigger to ensure PC model consistency with the Product table
+CREATE OR REPLACE TRIGGER pc_model_constraint
+BEFORE INSERT OR UPDATE ON PC
+FOR EACH ROW
+DECLARE
+    v_count NUMBER;
+BEGIN
+    IF :NEW.model IS NOT NULL THEN
+        -- Check if the PC model exists in the Product table using a SQL query
+        SELECT COUNT(*) INTO v_count FROM Product WHERE model = :NEW.model;
+        
+        IF v_count = 0 THEN
+            -- If not, insert the missing PC model into the Product table
+            INSERT INTO Product (model) VALUES (:NEW.model);
+        END IF;
+    END IF;
+END;
+/
+
+-- Trigger to ensure Laptop model consistency with the Product table
+CREATE OR REPLACE TRIGGER laptop_model_constraint
+BEFORE INSERT OR UPDATE ON Laptop
+FOR EACH ROW
+DECLARE
+    v_count NUMBER;
+BEGIN
+    IF :NEW.model IS NOT NULL THEN
+        -- Check if the Laptop model exists in the Product table using a SQL query
+        SELECT COUNT(*) INTO v_count FROM Product WHERE model = :NEW.model;
+        
+        IF v_count = 0 THEN
+            -- If not, insert the missing Laptop model into the Product table
+            INSERT INTO Product (model) VALUES (:NEW.model);
+        END IF;
+    END IF;
+END;
+/
+
+
+
+
+
+
+
+
+
+

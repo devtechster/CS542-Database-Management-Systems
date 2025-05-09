@@ -1,0 +1,57 @@
+--------hw2Q2
+
+CREATE TABLE Employee (
+  SSN INT NOT NULL,
+  Name VARCHAR(25),
+  Salary INT ,
+  PRIMARY KEY (SSN)
+);
+
+select Employee ;
+
+-----------------------hw3
+CREATE TABLE SuperBallScores (
+playerNum INTEGER,
+score INTEGER
+);
+
+SET TIMING ON;
+
+SELECT COUNT(playerNum) FROM SuperBallScores;
+
+
+
+SELECT playerNum, MIN(score), MAX (score) FROM SuperBallScores GROUP BY playerNum;
+
+SELECT T1.playerNum FROM SuperBallScores T1, SuperBallScores T2 WHERE T1.playerNum = T2.playerNum;
+
+UPDATE SuperBallScores SET score=score - 10;
+
+SELECT T1.playerNum FROM SuperBallScores T1, SuperBallScores T2 WHERE T1.playerNum = T2.playerNum
+
+Drop table SuperBallScores;
+------------------------------hw3q2
+Relation Emp 
+eid Integer,
+ename Char Width 255,
+age Integer,
+salary Float,
+PRIMARY KEY (eid);
+
+relation Works
+eid Integer,
+did Integer,
+pct_time Integer,
+PRIMARY KEY (eid,did),
+FOREIGN KEY (eid) REFERENCES Emp (eid),
+FOREIGN KEY (did) REFERENCES Dept (did);
+
+relation Dept
+did Integer,
+dname Char Width 255, 
+budget Float,
+managerid Integer,
+PRIMARY KEY (did),
+FOREIGN KEY (managerid) REFERENCES Emp (eid);
+
+--------------
