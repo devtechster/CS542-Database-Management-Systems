@@ -1,4 +1,11 @@
-# CS542-Database-Management-Systems
-My assignments and quizzes from the course CS542 Database Management Systems from WPI
-I've taken this course in Fall 2023; we had 9 Quizes and 11 Assignments based on topics taught in the class and Final Project.
-Please refer course slides to access content in the course and assignments in homework folder.
+# CS542 - Database Management Systems
+
+My assignments and quizzes from the course **CS542: Database Management Systems** at WPI.
+
+I took this course in **Fall 2023**. The coursework included:
+- 9 Quizzes ([view here](https://github.com/devtechster/CS542-Database-Management-Systems/tree/main/Quizes))  
+- 11 Assignments ([view here](https://github.com/devtechster/CS542-Database-Management-Systems/tree/main/Assignments))  
+- 1 Final Project
+
+Please refer to the course [slides](https://github.com/devtechster/CS542-Database-Management-Systems/tree/main/Class%20slides) for course content.  
+Assignments can be found in the `homework` folder.
